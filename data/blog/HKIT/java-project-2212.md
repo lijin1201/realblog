@@ -41,3 +41,12 @@ Java 원리를 따지고 원인을 잡아야 합니다.(예: 인스턴스 없이
 최선의 프로젝트는 만드는 경험했습니다.
 Card 클래스 중 카드 상태를 기록하고, 게임 매니저에서 정보를
 주고 받는 기능을 설계했습니다.
+
+## 게임 정보
+**게임 시작 화면:**
+
+![Card game initial screen](/static/images/HKIT/CardGameInit-1209.PNG)
+
+**클래스 다이어그램:**
+
+![Card game class diagram](/static/images/HKIT/CardGameClass-1209.png)
