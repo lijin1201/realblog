@@ -18,5 +18,6 @@ summary: '고양이 밥주기 게임'
         <video controls="controls">
         <source src="/static/images/Sparta/unity-dogvscat-Opt.mp4" type="video/mp4"/></video>
         </td>
-    </tr>
+    </tr> 
 </table>
+<ReactPlayer controls url="/static/images/Sparta/unity-dogvscat-Opt.mp4" />

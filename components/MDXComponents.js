@@ -6,9 +6,12 @@ import CustomLink from './Link'
 import TOCInline from './TOCInline'
 import Pre from './Pre'
 import { BlogNewsletterForm } from './NewsletterForm'
+import React from 'react'
+import ReactPlayer from 'react-player/lazy'
 
 export const MDXComponents = {
   Image,
+  ReactPlayer,
   TOCInline,
   a: CustomLink,
   pre: Pre,
