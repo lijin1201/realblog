@@ -13,11 +13,12 @@ summary: '고양이 밥주기 게임'
         <td>게임플레이 </td>
     </tr>
     <tr>
-        <td><img src="/static/images/Sparta/unity-dogvscat.png" alt width="300"/></td>
+        <td><img src="/static/images/Sparta/unity-dogvscat.png" alt width="300"/>
+        </td>
         <td>
-        <video controls="controls">
-        <source src="/static/images/Sparta/unity-dogvscat-Opt.mp4" type="video/mp4"/></video>
+        <ReactPlayer width="100%"
+        height="100%" controls url="/static/images/Sparta/unity-dogvscat-Opt.mp4" 
+        />
         </td>
     </tr> 
 </table>
-<ReactPlayer controls url="/static/images/Sparta/unity-dogvscat-Opt.mp4" />
