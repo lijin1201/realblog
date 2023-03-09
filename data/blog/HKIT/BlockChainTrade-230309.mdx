@@ -1,0 +1,152 @@
+---
+title: 블록체인거래소개발
+date: '2023-03-03'
+tags: ['Blockchain','react','next.js','mongoDB']
+draft: false
+summary: '웹서버 만들고 Db에서 거래data읽어서 출력하기.'
+---
+
+React로 간단한 블록체인 거래소를 만들었 습니다.
+
+## 네트워크 서버와 db등을 만들기.
+먼저 react api를 만들고 mongoDB 에 데이터 입력과 조회 기능을 구현합니다.  아래는 일부 api 코드:
+
+```js
+import { StatusCodes } from "http-status-codes";
+import { NextApiRequest, NextApiResponse } from "next";
+
+
+async function DbConnect1(){
+    const { MongoClient, ServerApiVersion} = require('mongodb');
+    const uri = "mongodb://localhost:27017";
+    const mgct = new MongoClient(uri);
+
+    const db1 = mgct.db("CsharpDb1");
+    const clc1 = db1.collection("BlockTrade");
+    return clc1;
+}
+
+async function DbWrite1(name:string,id:number,data:number){
+    const clc1 = await DbConnect1();
+    const data1 = {
+        UserId:name,
+        BlockId:id,
+        BlockData:data
+    }
+    const result = await clc1.insertOne(data1);
+}
+
+//...
+export default function Dispatch1( req: NextApiRequest, res:NextApiResponse) {
+  if(req.query.add != undefined) { return add(req,res);}
+  if(req.query.read1 != undefined) { return read1(req,res); }
+  //if(req.query.readall != undefined) { return readall(req,res); }
+
+  return res.status(StatusCodes.BAD_REQUEST).end();
+}
+
+async function add(req: NextApiRequest, res: NextApiResponse) {
+
+    await DbWrite1(req.body.Userid , Number(req.body.BlockId), Number(req.body.BlockData) );
+}
+```
+
+## 사용자들에게 네트워크 처리를 위한 웹서버.
+사용자 등로하고 나서, 블록을 입력저장 및 자신의 블록 리스트를 조회할 수 있다.
+
+<h5 a><strong><code>trade1.tsx</code></strong></h5>
+
+```js
+import Axios from 'axios';
+import { useEffect, useState } from 'react';
+import useSWR from 'swr'
+import { useRouter } from 'next/router';
+import TradeHd from './tradeHeader';
+
+export default function App1() {
+	const DataUrl = '/api/session1?data';
+    const LogoutUrl = '/api/session1?logout';
+    const SubmitUrl = '/api/tradeApi?add';
+    const Read1Url = '/api/tradeApi?read1';
+	const rt1 = useRouter();
+    const [iptuid, setIptuid] = useState('');
+    const [blockId, setBlockId] = useState('');
+    const [blockData, setBlockData] = useState('');
+
+	const { data, error, isLoading } = useSWR(DataUrl, 
+        (url: string) => Axios.get(url).then((res) => {setIptuid(res.data?.userdata?.name); return res.data})
+        );
+
+    const { data:blocks } = useSWR(Read1Url, 
+        (url: string) => Axios.post(url, { Userid:iptuid}).then( (res) => res.data ) );
+
+	if (error) { return (<> error: {JSON.stringify(error)} </>); }
+	if (!data) { return (<> loading data: {data} </>); }
+
+    return (
+        <div>
+            <TradeHd userdata={data.userdata} />
+            {data.logon?
+            <div>
+            <button onClick ={() => { Axios.post(LogoutUrl ).then(() => {rt1.reload();}) }}> Logout</button>
+            <h3>Block ID:
+            <input value = {blockId} onChange={(e) => setBlockId(e.target.value)} /> </h3>
+            <h3>Block Data:
+            <input value = {blockData} onChange={(e) => setBlockData(e.target.value)} /> </h3>
+            <br/>
+            <button onClick ={() => { Axios.post(SubmitUrl, { Userid:data?.userdata?.name, BlockId: blockId, BlockData: blockData} ).then(() => {rt1.reload();}) }}> Submit</button>
+            <br/>
+            <ol>
+                {
+                blocks?.map((e:{UserId:string, BlockId:number, BlockData:number})=>
+                    {return <><li> UserId: {e.UserId} ; BlockId: {e.BlockId} ; BlockData: {e.BlockData} </li></>})
+                    //{return <><li>id:{e.id}</li></>})
+                }
+            </ol>
+            </div>:
+            <p>인증필요:
+                
+            </p>
+            }           
+        </div>
+    )
+}
+
+```
+
+<h5 a><strong><code>tradeHeader.tsx</code></strong></h5>
+
+```js
+import Axios from 'axios';
+import { useState } from 'react';
+import useSWR from 'swr'
+import { UserData, sessionOptions1 } from '../api/session1'
+import { useRouter } from 'next/router';
+
+const axios1 = (url: string) => Axios.get(url).then((res) => res.data)
+export default function TradeHd(props: { userdata: UserData }) {
+	const LoginUrl = '/api/session1?login';
+	
+	const rt1 = useRouter();
+	const [iptuid, setIptuid] = useState('');
+
+    const DataUrl = '/api/session1?data';
+	const { data, error, isLoading } = useSWR(DataUrl, axios1);
+
+	return (
+		<div>
+		  <h2>블록체인 거래소</h2>
+          {data.logon?<h2>MyInfo userid:{props.userdata?.name}</h2>:<div>
+		  <input value = {iptuid} onChange={(e) => setIptuid(e.target.value)} />
+		  <button onClick ={() => { Axios.post(LoginUrl, { Userid: iptuid }).then(() => {rt1.reload();}) }}> Login </button>
+          </div>
+          }
+
+		</div>
+	); 
+}
+```
+
+## 결과화면:
+
+![캡처-거래소](/static/images/HKIT/캡처-거래소.PNG)
