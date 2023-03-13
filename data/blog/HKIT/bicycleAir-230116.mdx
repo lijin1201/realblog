@@ -1,0 +1,111 @@
+---
+title: 자전거 공기주입구 조회시스템
+date: '2023-01-16'
+tags: ['react', 'next.js', 'mongoDB']
+draft: false
+summary: '대구시 자전거 공기주입구 조회및 찜하기.'
+---
+
+공공대이터포털에 중 데이터베이스로 변환시키고 세버에 저장했습니다.
+그리고 웹 서비스로 사용사는 키위드로 검색하고, 찜하기라는 기능을 구축된다.
+
+실제 데이터는 에서 다움로도하고, 약간 배경 화면도 배치했습니다.
+먼저 DB 연결 웹api 는 <code>api/BicycleDao.ts</code> 에 만들고,
+라우터는 <code>bicycleAir/[searchAddr].tsx</code>에 담당합니다.
+
+여기서 <code>api/BicycleDao.ts</code>에 찜하기를 구현하는코드:
+
+마지막으로 웨페이지 소느는 여기 있습니다.
+
+```js
+import useSWR from 'swr'
+import Axios from 'axios'
+import { useState } from 'react'
+import { useRouter } from 'next/router'
+import { NextApiRequest, NextApiResponse } from 'next'
+import { StatusCodes } from 'http-status-codes'
+
+const axios1 = (url: string) => Axios.get(url).then((res) => res.data)
+
+const App3 = (req: NextApiRequest, res: NextApiResponse) => {
+  const { query: qr1 } = useRouter()
+  const { data, error, isLoading } = useSWR('http://localhost:3000/api/BicycleDao', axios1)
+  const [ipt1, setIpt1] = useState('test1')
+  const [fav, setFav] = useState('test2')
+
+  if (error) {
+    return <> error! </>
+  }
+  if (!data) {
+    return <>loading...</>
+  }
+
+  return (
+    <div>
+      <h2>대구 자전거 공기주입기</h2>
+      <input value={ipt1} onChange={(e) => setIpt1(e.target.value)} />
+      <button
+        onClick={(e) => {
+          let slink = document.getElementById('slink')
+          slink?.setAttribute('href', '/bicycleAir/' + ipt1)
+        }}
+      >
+        입력
+      </button>{' '}
+      <a id="slink">검새1</a> <br></br>
+      <table>
+        <tr>
+          <td>
+            <a href="/bicycleAir/북구">북구</a>{' '}
+          </td>
+          <td>
+            <a href="/bicycleAir/동구">동구</a>{' '}
+          </td>
+          <td>
+            <a href="/bicycleAir/수성구"> 수성구</a>
+          </td>
+        </tr>
+      </table>
+      <table class="bicycle">
+        <tr>
+          {' '}
+          <td>연번</td> <td>찜</td> <td>설 치 위 치</td> <td>타입</td> <td>관리기관</td> <td> 전화번호</td>
+        </tr>
+        {data.map(
+          (e: {
+            연번: number,
+            '설  치  위  치': string,
+            타입: string,
+            관리기관: string,
+            전화번호: string,
+          }) => {
+            const id = e['연번']
+            return (
+              <tr>
+                <td> {e.연번}</td>
+                <td>
+                  {' '}
+                  <button
+                    onClick={(e) => {
+                      Axios.get('http://localhost:3000/api/BicycleDao?favorite=' + id)
+                    }}
+                  >
+                    {' '}
+                    {e.favorite ? 'Y' : 'N'}{' '}
+                  </button>
+                </td>
+                <td> {e['설  치  위  치']}</td>
+                <td> {e['타입']}</td>
+                <td> {e.관리기관}</td>
+                <td> {e['전화번호']}</td>
+              </tr>
+            )
+          }
+        )}
+      </table>
+    </div>
+  )
+}
+
+export default App3
+```
