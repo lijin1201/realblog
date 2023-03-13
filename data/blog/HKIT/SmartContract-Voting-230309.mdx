@@ -1,0 +1,118 @@
+---
+title: 스마트컨트랙트 투표
+date: '2023-03-09'
+tags: ['Blockchain','solidity']
+draft: false
+summary: '스마트컨트랙트로 간단한 EOA 투표 스시템 만들기.'
+---
+
+이더리옴에 스마트컨트랙트로 간단한 만들었습니다. 투표 관리자에 후보자를 추가하고, 각 EOA를 contract로 관리자의
+투표 함수롤 호출합니다. 하EOA당 한번만 투표할 수 있습니다.  득표 수가 제일 많은자는 최중 우승자입니다.
+
+## 코드
+코드는 아래와 같이 있습니다.
+<h5 a><strong><code>elecVote.sol</code></strong></h5>
+
+```solidity
+
+pragma solidity ^0.6;
+import "hardhat/console.sol";
+
+contract ElectronicVote {
+    uint public numCandidates;	                    // 후보 인원
+	string[] candidateNames; 		                // 후보자 목록
+	mapping (string => uint) public votesReceived;  // 후보자별 득표 수
+    mapping(string => bool) public exists;
+
+    modifier isOwner {					            /* 컨트랙트 생성자 여부 확인 */
+		require(msg.sender==owner, "Not allowed."); 
+        _;
+    }
+	
+	address owner;			                        /* 투표 주최자 */
+	
+	struct voter {			                        /* 투표자 */
+		address voterAddress;	                    /* 투표자 주소 */
+		bool voted;		                            /* 투표 여부, 초기값 false */
+	}
+	
+	uint public numVoters;		                    /* 투표 인원 */
+	mapping (address => voter) voters; 	            /* 투표자 목록 */
+
+	constructor() payable public {
+		owner = msg.sender;
+	}
+
+	function getCandidateName(uint index) public view returns(string memory) {
+		if (index < candidateNames.length) 
+		    return candidateNames[index];
+		return "Invalid candidate";
+	}
+
+	function vote(string memory candidateName) external {
+		if (!exists[candidateName]) { 
+			console.log("Candidate does not exist!");
+			return; 
+		}		
+		if (voters[msg.sender].voted == false) {
+		    votesReceived[candidateName] += 1;
+		    voters[msg.sender].voted = true;
+		    numVoters++;
+		} else {
+			console.log("Already voted!");
+		}
+	}
+	
+	/* 후보자 등록 */
+	function registerCandidate(string memory candidate) public isOwner {
+        if (!exists[candidate]) {
+            candidateNames.push(candidate);
+            numCandidates++;
+            exists[candidate] = true;
+        } else {
+            console.log("Candidate exists!");
+        }
+        
+	}
+
+    function winningCandidate() public view returns(string memory)
+    {
+        uint winningVoteCount = 0;
+		uint winningIdx = 0 ;
+        if (numCandidates <1) { return "Empty Candidate";}
+        for (uint p = 0; p < numCandidates; p++ ) {
+            if (votesReceived[getCandidateName(p)] > winningVoteCount){
+                winningVoteCount = votesReceived[getCandidateName(p)];
+				winningIdx = p;    
+            }
+        }
+	 	return getCandidateName(winningIdx);
+    }
+}
+
+//투표자가 베포하는 contract
+contract member {
+
+    function vote(address evote, string memory candidateName) public  {		
+		ElectronicVote(evote).vote(candidateName);
+	}
+}
+```
+
+## 결과화면
+
+4면 투표하고, 후보자"aa","bb","cc"중 최종우성자는 "bb" 입니다.
+
+<table>
+    <tr>
+        <td>투표 </td>
+        <td>결과 </td>
+    </tr>
+    <tr>
+        <td>![투표](/static/images/HKIT/EthereumVotingMembers.png)
+        </td>
+        <td>
+        ![결과](/static/images/HKIT/EthereumVotingResult.png)
+        </td>
+    </tr> 
+</table>
